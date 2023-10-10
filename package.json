@@ -1,0 +1,49 @@
+{
+  "name": "dbms-project",
+  "version": "1.0.0",
+  "main": "/dist/main.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "node dist/main.js",
+    "compile": "tsc && node dist/main.js",
+    "build": "tsc",
+    "dev": "nodemon -e .ts --exec \"yarn compile\"",
+    "lint": "eslint --ext .js,.ts .",
+    "format": "prettier --ignore-path .gitignore --write \"**/*.+(js|ts|json)\"",
+    "prepare": "husky install",
+    "seed": "tsc && node dist/utils/seed.js"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "yarn format",
+      "yarn lint"
+    ]
+  },
+  "dependencies": {
+    "@fastify/static": "^6.10.1",
+    "@sinclair/typebox": "^0.31.17",
+    "dotenv": "^16.0.3",
+    "fastify": "^4.23.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^7.5.3",
+    "mysql2": "^3.6.1",
+    "reflect-metadata": "^0.1.13",
+    "rxjs": "^7.8.1",
+    "sequelize": "^6.33.0",
+    "sequelize-typescript": "^2.1.5"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.1",
+    "@types/node": "^18.15.11",
+    "@typescript-eslint/eslint-plugin": "^5.57.0",
+    "@typescript-eslint/parser": "^5.57.0",
+    "eslint": "^8.37.0",
+    "eslint-config-prettier": "^8.8.0",
+    "husky": "^8.0.0",
+    "lint-staged": "^13.2.0",
+    "nodemon": "^2.0.22",
+    "pino-pretty": "^10.0.0",
+    "prettier": "^2.8.7",
+    "typescript": "^5.0.3"
+  }
+}
