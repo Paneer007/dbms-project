@@ -3,7 +3,6 @@ import { Optional } from "sequelize";
 interface UserAttributes {
   id: number;
   name: string;
+  username: string;
+  password: string;
 }
-
-type UserCreationAttributes = Optional<UserAttributes, "id">;
-export default UserCreationAttributes;

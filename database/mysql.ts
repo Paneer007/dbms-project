@@ -1,6 +1,9 @@
 import { Sequelize } from "sequelize-typescript";
 import config from "../config/config";
 import User from "../model/sql/user/user.model";
+import Comment from "../model/sql/comment/comment.model";
+import Answer from "../model/sql/answer/answer.model";
+import Question from "../model/sql/question/question.model";
 
 const db = new Sequelize(
   config.mysqldatabase,
@@ -14,10 +17,13 @@ const db = new Sequelize(
 
 // add models here
 db.addModels([User]);
+db.addModels([Comment]);
+db.addModels([Answer]);
+db.addModels([Question]);
 
 const connectSQLDatabase = () => {
   db.sync({ force: true })
-    .then(() => console.log("Connected to db successfully 😎"))
+    .then(() => console.log("Connected to db successfully"))
     .catch((err) => console.log(err));
 };
 

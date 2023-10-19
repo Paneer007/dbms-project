@@ -1,11 +1,19 @@
-import { Table, Model } from "sequelize-typescript";
-import UserCreationAttributes from "./user.model";
-interface UserAttributes {
-  id: number;
-  name: string;
-}
+import { Table, Column, Model, HasMany } from "sequelize-typescript";
+import Question from "../question/question.model";
 
 @Table
-class User extends Model<UserAttributes, UserCreationAttributes> {}
+class User extends Model {
+  @Column
+  username!: string;
+
+  @Column
+  password!: string;
+
+  @Column
+  name!: string;
+
+  @HasMany(() => Question)
+  questions!: Question[];
+}
 
 export default User;

@@ -19,3 +19,7 @@
 - Fill necessary details
 - Create the database as per the config file in mysql before running it
 - run `yarn dev` to run the server
+- Enable githooks
+  ```sh
+  git config core.hooksPath .githooks
+  ```
