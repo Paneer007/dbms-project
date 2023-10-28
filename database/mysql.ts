@@ -16,13 +16,10 @@ const db = new Sequelize(
 );
 
 // add models here
-db.addModels([User]);
-db.addModels([Comment]);
-db.addModels([Answer]);
-db.addModels([Question]);
+db.addModels([Comment, Answer, Question, User]);
 
 const connectSQLDatabase = () => {
-  db.sync({ force: true })
+  db.sync({ force: false })
     .then(() => console.log("Connected to db successfully"))
     .catch((err) => console.log(err));
 };

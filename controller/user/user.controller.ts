@@ -1,38 +1,6 @@
-import Question from "../../model/sql/question/question.model";
 import userModel from "../../model/sql/user/user.model";
 import bcrypt from "bcrypt";
-const excludes = {
-  password: 0,
-  hasSecondaryCreds: 0,
-  isSecodaryCredsVerified: 0,
-};
-
-const dummyUser = {
-  handler: async (req: any, res: any) => {
-    try {
-      const users = await userModel.findOne({
-        where: {
-          username: "paneer",
-        },
-      });
-
-      if (users) {
-        return res.code(404).send({ message: "Dummy user is found" });
-      }
-      const hashPass = await bcrypt.hash("password", 10);
-      await userModel.create({
-        name: "sanjai",
-        username: "paneer",
-        password: hashPass,
-      });
-      return res.code(200).send({ message: "user created" });
-    } catch (err) {
-      return res
-        .code(500)
-        .send({ message: "Error while trying to make dummy user" });
-    }
-  },
-};
+import { newToken } from "../../utils/createToken";
 
 const getUsers = {
   handler: async (req: any, res: any) => {
@@ -70,13 +38,32 @@ const getUserById = {
   },
 };
 
-const updateProfile = {
+const getProfile = {
+  handler: async (req: any, res: any) => {
+    try {
+      const userId = req.currentUserId;
+      const user = await userModel.findOne({
+        where: {
+          id: userId,
+        },
+      });
+      if (!user) {
+        return res.status(400).send("User doesnt exists");
+      }
+      return res.status(200).send(user);
+    } catch {
+      return res.status(500).send("Internal server error");
+    }
+  },
+};
+
+const patchProfile = {
   handler: async (req: any, res: any) => {
     try {
       //update user profile
       const user = await userModel.findOne({
         where: {
-          id: req.currentUser.id,
+          id: req.currentUserId,
         },
       });
       if (!user) {
@@ -98,32 +85,37 @@ const updateProfile = {
   },
 };
 
-const postQuestion = {
+const userSignup = {
   handler: async (req: any, res: any) => {
     try {
       const body = req.body;
-
-      const details = body.details; // replace with mongo db when needed
-      const status = "unanswered";
-      const viewCount = 0;
-      const voteCount = 0;
-
-      if (!details) {
-        return res.code(500).send({
-          mesage: "Invalid question",
-        });
+      const username = body.username;
+      const password = body.password;
+      if (!username || !password) {
+        return res.status(400).send({ message: "Enter valid credentials" });
       }
 
-      await Question.create({
-        details,
-        status,
-        viewCount,
-        voteCount,
+      const user = await userModel.findOne({
+        where: {
+          username: username,
+        },
       });
-      return res.code(200).send({ message: "created new user successfully" });
-    } catch {
-      return res.code(500).send({
-        message: "Error while posting the question",
+
+      if (user) {
+        return res.status(400).send({
+          message: "User exists",
+        });
+      }
+      const hashedPassword = await bcrypt.hash(password, 10);
+      await userModel.create({
+        username: username,
+        password: hashedPassword,
+      });
+      return res.status(200).send("User created");
+    } catch (e) {
+      console.log(e);
+      return res.status(500).send({
+        message: "Error while sending the question",
       });
     }
   },
@@ -134,8 +126,7 @@ const userLogin = {
     try {
       const body = req.body;
       const username = body.username;
-      const password = body.pasword;
-
+      const password = body.password;
       if (!username || !password) {
         return res.status(400).send({ message: "Enter valid credentials" });
       }
@@ -152,15 +143,17 @@ const userLogin = {
         });
       }
 
-      const match = bcrypt.compare(password, user.password);
+      const match = bcrypt.compare(user.password, password);
       if (!match) {
         return res.status(400).send({
           message: "Enter a valid password",
         });
       }
-    } catch {
+      const token = newToken(user.id);
+      return res.status(200).send(token);
+    } catch (e) {
       return res.status(500).send({
-        message: "Error while sending the question",
+        message: "Error while logging in",
       });
     }
   },
@@ -169,9 +162,9 @@ const userLogin = {
 export {
   getUsers,
   getUserById,
-  updateProfile,
-  dummyUser,
-  postQuestion,
+  patchProfile,
+  getProfile,
   userLogin,
+  userSignup,
   //   getSearch,
 };

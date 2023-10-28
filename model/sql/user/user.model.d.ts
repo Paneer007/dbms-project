@@ -1,5 +1,3 @@
-import { Optional } from "sequelize";
-
 interface UserAttributes {
   id: number;
   name: string;

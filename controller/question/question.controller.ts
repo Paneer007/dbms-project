@@ -1,8 +1,10 @@
-import QuestionModel from "../../model/sql/question/question.model";
+import questionModel from "../../model/sql/question/question.model";
+import answerModel from "../../model/sql/answer/answer.model";
+
 const getQuestions = {
   handler: async (req: any, res: any) => {
     try {
-      const question = await QuestionModel.findAll({});
+      const question = await questionModel.findAll({});
       if (!question) {
         return res.status(400).send({
           message: "Question doesn't exist",
@@ -29,16 +31,21 @@ const postQuestion = {
   handler: async (req: any, res: any) => {
     try {
       const body = req.body;
-      const question = body.question;
-      if (body.size() == 0) {
+      const questionDetails = body.questionDetails;
+      if (!questionDetails) {
         return res.status(401).send("Error in fetching parameters");
       }
-      if (!question) {
-        return res.status(401).send("Error in fetching questions");
-      }
+      await questionModel.create({
+        details: questionDetails,
+        viewCount: 0,
+        status: "open",
+        voteCount: 0,
+        userId: req.currentUserId ? req.currentUserId : 0,
+      });
+
       // create Question object with the details needed
-      return res.status(200).send(question);
-    } catch {
+      return res.status(200).send("Question created");
+    } catch (e) {
       return res.status(500).send({
         message: "Error while posting question",
       });
@@ -50,9 +57,18 @@ const postQuestionAnswers = {
   handler: async (req: any, res: any) => {
     try {
       const body = req.body;
-      const answer = body.answer;
+      const answerText = body.answerText;
+      const userId = req.currentUserId;
       const q_id = body.questionId;
-      // code the rest of the route lamo
+
+      await answerModel.create({
+        answerText: answerText,
+        accepted: false,
+        voteCount: 0,
+        userId: userId,
+        questionId: q_id,
+      });
+
       return res.status(200).send("Answer created");
     } catch {
       return res.status(500).send({
@@ -66,22 +82,56 @@ const patchQuestion = {
   handler: async (req: any, res: any) => {
     try {
       const body = req.body;
-      const answer = body.answer;
+      const user_id = req.currentUserId;
+      const details = body.details;
       const q_id = body.questionId;
-      const question = await QuestionModel.findOne({
+      if (!q_id && !details) {
+        return res.status(200).send("enter valid body");
+      }
+      const question = await questionModel.findOne({
         where: {
           id: q_id,
+          userId: user_id,
         },
       });
+
       if (!question) {
         return res.status(400).send({
           message: "Question doesn't exist",
         });
       }
-      question.answers = answer;
+
+      question.details = details;
+      await question.save();
+
       return res.code(200).send("Updated");
     } catch {
-      return res.code(400);
+      return res.code(500).send("internal server error");
+    }
+  },
+};
+
+const postVoteQuestion = {
+  handler: async (req: any, res: any) => {
+    try {
+      const body = req.body;
+      const q_id = body.questionId;
+      if (!q_id) {
+        return res.status(400).send("enter a question id");
+      }
+      const question = await questionModel.findOne({
+        where: {
+          id: q_id,
+        },
+      });
+      if (!question) {
+        return res.status(400).send("Question is not found");
+      }
+      question.voteCount += 1;
+      await question.save();
+      return res.status(200).send("upvoted");
+    } catch (e) {
+      return res.status(500).send("Internal server error");
     }
   },
 };
@@ -90,10 +140,32 @@ const patchAnswer = {
   handler: async (req: any, res: any) => {
     try {
       const body = req.body;
-      const answer = body.answer;
-      const answer_id = body.questionId;
+      const answer_id = body.answerId;
+      const user_id = req.currentUserId;
+      const details = body.details;
+
+      if (!answer_id && !details) {
+        return res.status(200).send("enter valid body");
+      }
+
+      const answer = await answerModel.findOne({
+        where: {
+          id: answer_id,
+          userId: user_id,
+        },
+      });
+
+      if (!answer) {
+        return res.status(400).send({
+          message: "answer doesn't exist",
+        });
+      }
+
+      answer.answerText = details;
+      answer.save();
+
       // code the rest of the route lamo
-      return res.status(200).send("Answer created");
+      return res.status(200).send("Answer updated");
     } catch {
       return res.status(500).send({
         message: "Error while obtain the answers for a question",
@@ -102,10 +174,49 @@ const patchAnswer = {
   },
 };
 
+const getAllUserQuestions = {
+  handler: async (req: any, res: any) => {
+    try {
+      const userId = req.currentUserId;
+      const questions = await questionModel.findAll({
+        where: {
+          userId: userId,
+        },
+      });
+      if (!questions || questions.length == 0) {
+        return res.status(500).send("No questions exists");
+      }
+      return res.status(200).send(questions);
+    } catch {
+      return res.status(500).send("Internal server error");
+    }
+  },
+};
+
+const getSpecificQuestion = {
+  handler: async (req: any, res: any) => {
+    try {
+      const { questionId } = req.params;
+      const questionDetails = await questionModel.findOne({
+        where: { id: questionId },
+        include: [answerModel],
+      });
+      return res.status(200).send(questionDetails);
+    } catch {
+      return res.status(500).send({
+        message: "Error while fetching the question details",
+      });
+    }
+  },
+};
+
 export {
+  getAllUserQuestions,
   getQuestions,
+  getSpecificQuestion,
   postQuestion,
   postQuestionAnswers,
+  postVoteQuestion,
   patchQuestion,
   patchAnswer,
 };

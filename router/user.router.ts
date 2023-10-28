@@ -1,18 +1,14 @@
 import { FastifyInstance, RouteOptions } from "fastify";
 import router from "../utils/router";
 import signToken from "../middleware/auth";
-import {
-  dummyUser,
-  getUsers,
-  postQuestion,
-} from "../controller/user/user.controller";
+import { getProfile } from "../controller/user/user.controller";
 
 const routes: RouteOptions[] = [
   {
     method: "GET",
-    url: "/dummy",
-    //  preHandler: [signToken],
-    handler: dummyUser.handler,
+    url: "/profile",
+    preHandler: [signToken],
+    handler: getProfile.handler,
   },
 ];
 

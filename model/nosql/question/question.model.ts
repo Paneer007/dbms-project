@@ -1,4 +1,4 @@
-import { Schema, model, Types } from "mongoose";
+import { Schema, model } from "mongoose";
 import QuestionInterface from "./question.model.d";
 
 const QuestionSchema = new Schema<QuestionInterface>({
