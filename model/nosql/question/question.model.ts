@@ -3,19 +3,7 @@ import QuestionInterface from "./question.model.d";
 
 const QuestionSchema = new Schema<QuestionInterface>({
   questions: {
-    type: [
-      {
-        id: {
-          type: Number,
-          default: -1,
-        },
-        question: {
-          type: String,
-          default: "",
-        },
-      },
-    ],
-    default: [],
+    type: String,
   },
 });
 

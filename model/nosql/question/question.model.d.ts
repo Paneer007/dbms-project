@@ -1,10 +1,10 @@
 import { Document } from "mongoose";
 interface questionInterface {
   id: number;
-  question: string;
+  questionDetails: string;
 }
 interface QuestionInterface extends Document {
-  questions: [questionInterface];
+  questions: string;
 }
 
 export default QuestionInterface;

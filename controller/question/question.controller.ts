@@ -1,5 +1,12 @@
 import questionModel from "../../model/sql/question/question.model";
 import answerModel from "../../model/sql/answer/answer.model";
+import QuestionModel from "../../model/nosql/question/question.model";
+import AnswerModel from "../../model/nosql/answer/answer.model";
+
+const getDetails = async (x: any) => {
+  const questionDetail = await QuestionModel.findOne({ id: x });
+  return questionDetail;
+};
 
 const getQuestions = {
   handler: async (req: any, res: any) => {
@@ -14,7 +21,7 @@ const getQuestions = {
       return res.code(200).send({
         questions: question.map((x) => {
           return {
-            details: x.details,
+            details: getDetails(x.details),
             status: x.status,
             view_count: x.viewCount,
             vote_count: x.voteCount,
@@ -35,8 +42,14 @@ const postQuestion = {
       if (!questionDetails) {
         return res.status(401).send("Error in fetching parameters");
       }
+
+      const nosqlQuestion = new QuestionModel({
+        questionDetails: questionDetails,
+      });
+      nosqlQuestion.save();
+
       await questionModel.create({
-        details: questionDetails,
+        details: nosqlQuestion.id,
         viewCount: 0,
         status: "open",
         voteCount: 0,
@@ -61,8 +74,11 @@ const postQuestionAnswers = {
       const userId = req.currentUserId;
       const q_id = body.questionId;
 
+      const questionAnswer = new AnswerModel({ answers: answerText });
+      await questionAnswer.save();
+
       await answerModel.create({
-        answerText: answerText,
+        answerText: questionAnswer.id,
         accepted: false,
         voteCount: 0,
         userId: userId,
@@ -101,8 +117,15 @@ const patchQuestion = {
         });
       }
 
-      question.details = details;
-      await question.save();
+      const x = question.details;
+      const questionDetail = await QuestionModel.findOne({ id: x });
+      if (!questionDetail) {
+        return res.status(500).send({
+          message: "Error while obtain the answers for a question",
+        });
+      }
+      questionDetail.questions = details;
+      await questionDetail.save();
 
       return res.code(200).send("Updated");
     } catch {
@@ -161,8 +184,14 @@ const patchAnswer = {
         });
       }
 
-      answer.answerText = details;
-      answer.save();
+      const answerDetail = await AnswerModel.findOne({ id: answer.id });
+
+      if (!answerDetail) {
+        return res.status(500).send("Internal server error");
+      }
+
+      answerDetail.answers = details;
+      await answerDetail.save();
 
       // code the rest of the route lamo
       return res.status(200).send("Answer updated");
@@ -183,16 +212,27 @@ const getAllUserQuestions = {
           userId: userId,
         },
       });
+
       if (!questions || questions.length == 0) {
         return res.status(500).send("No questions exists");
       }
-      return res.status(200).send(questions);
+      return res.code(200).send({
+        questions: questions.map((x) => {
+          return {
+            details: getDetails(x.details),
+            status: x.status,
+            view_count: x.viewCount,
+            vote_count: x.voteCount,
+          };
+        }),
+      });
     } catch {
       return res.status(500).send("Internal server error");
     }
   },
 };
 
+// update this route when you get time
 const getSpecificQuestion = {
   handler: async (req: any, res: any) => {
     try {
