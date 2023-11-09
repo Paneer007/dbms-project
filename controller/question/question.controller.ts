@@ -2,15 +2,60 @@ import questionModel from "../../model/sql/question/question.model";
 import answerModel from "../../model/sql/answer/answer.model";
 import QuestionModel from "../../model/nosql/question/question.model";
 import AnswerModel from "../../model/nosql/answer/answer.model";
+import { error } from "console";
 
 const getDetails = async (x: any) => {
-  const questionDetail = await QuestionModel.findOne({ id: x });
+  const questionDetail = await QuestionModel.findById(x);
   return questionDetail;
 };
 
+const getAnswers = {
+  handler: async (req: any, res: any) => {
+    try {
+      let id = req.body.id;
+      console.log(id);
+      const answers = await answerModel.findAll({
+        where: {
+          questionId: id,
+        },
+      });
+      let result = [];
+      for (let i of answers) {
+        console.log(i.answerText);
+        let details = await AnswerModel.findOne({ _id: i.answerText });
+        result.push(details);
+      }
+      return res.code(200).send({
+        questions: result,
+      });
+    } catch {
+      return res.code(400);
+    }
+  },
+};
+const getQuestionDetails = {
+  handler: async (req: any, res: any) => {
+    try {
+      let id = req.body.id;
+      console.log(id);
+      const question = await questionModel.findOne({
+        where: {
+          id: id,
+        },
+      });
+      const details = await QuestionModel.findOne({ _id: question?.details });
+      return res.code(200).send({
+        questions: details,
+      });
+    } catch {
+      return res.code(400);
+    }
+  },
+};
 const getQuestions = {
   handler: async (req: any, res: any) => {
     try {
+      console.log("here");
       const question = await questionModel.findAll({});
       if (!question) {
         return res.status(400).send({
@@ -18,15 +63,31 @@ const getQuestions = {
         });
       }
 
+      const questionDetail = await QuestionModel.findById(question[0].details);
+      console.log(questionDetail);
+      //@ts-ignore
+      const mapElem = {};
+      for (let i = 0; i < question.length; i++) {
+        const questionDetail = await QuestionModel.findById(
+          question[i].details
+        );
+        //@ts-ignore
+        mapElem[i] = questionDetail["questions"];
+      }
+      console.log("done");
+      const questions = question.map((x, idx) => {
+        return {
+          id: x.id,
+          //@ts-ignore
+          details: mapElem[idx],
+          status: x.status,
+          view_count: x.viewCount,
+          vote_count: x.voteCount,
+        };
+      });
+      console.log(questions);
       return res.code(200).send({
-        questions: question.map((x) => {
-          return {
-            details: getDetails(x.details),
-            status: x.status,
-            view_count: x.viewCount,
-            vote_count: x.voteCount,
-          };
-        }),
+        questions: questions,
       });
     } catch {
       return res.code(400);
@@ -44,7 +105,7 @@ const postQuestion = {
       }
 
       const nosqlQuestion = new QuestionModel({
-        questionDetails: questionDetails,
+        questions: questionDetails,
       });
       nosqlQuestion.save();
 
@@ -73,10 +134,9 @@ const postQuestionAnswers = {
       const answerText = body.answerText;
       const userId = req.currentUserId;
       const q_id = body.questionId;
-
+      console.log(q_id);
       const questionAnswer = new AnswerModel({ answers: answerText });
       await questionAnswer.save();
-
       await answerModel.create({
         answerText: questionAnswer.id,
         accepted: false,
@@ -86,7 +146,8 @@ const postQuestionAnswers = {
       });
 
       return res.status(200).send("Answer created");
-    } catch {
+    } catch (error) {
+      console.log(error);
       return res.status(500).send({
         message: "Error while obtain the answers for a question",
       });
@@ -259,4 +320,6 @@ export {
   postVoteQuestion,
   patchQuestion,
   patchAnswer,
+  getQuestionDetails,
+  getAnswers,
 };

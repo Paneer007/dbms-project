@@ -8,6 +8,7 @@ import connectMongoDatabase from "./database/mongo";
 import { rootRouter } from "./router/root.router";
 import { userRouter } from "./router/user.router";
 import { questionRouter } from "./router/question.router";
+import { adminRouter } from "./router/admin.router";
 import cors from "@fastify/cors";
 
 const app: FastifyInstance = fastify({});
@@ -23,6 +24,7 @@ connectSQLDatabase();
 rootRouter(app);
 userRouter(app);
 questionRouter(app);
+adminRouter(app);
 
 app.listen({ port: config.port, host: config.host }, (): void => {
   console.log(`Server running at http://localhost:${config.port}`);

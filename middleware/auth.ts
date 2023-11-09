@@ -13,7 +13,7 @@ const checkLoggedIn: preHandlerAsyncHookHandler = async (
   let token = req.headers.authorization as string;
   let payload: string | JwtPayload;
   try {
-    token = token.substring(7);
+    console.log(token);
     payload = verify(token, process.env.JWT_SECRET as string);
   } catch (e) {
     return res.code(401).send({ message: "Not logged in" });

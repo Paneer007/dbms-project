@@ -10,6 +10,8 @@ import {
   postQuestion,
   postQuestionAnswers,
   postVoteQuestion,
+  getQuestionDetails,
+  getAnswers,
 } from "../controller/question/question.controller";
 
 const routes: RouteOptions[] = [
@@ -40,12 +42,23 @@ const routes: RouteOptions[] = [
     preHandler: [signToken],
     handler: postQuestion.handler,
   },
+  {
+    method: "POST",
+    url: "/answers",
+    preHandler: [signToken],
+    handler: getAnswers.handler,
+  },
 
   {
     method: "POST",
     url: "/answer",
     preHandler: [signToken],
     handler: postQuestionAnswers.handler,
+  },
+  {
+    method: "POST",
+    url: "/details",
+    handler: getQuestionDetails.handler,
   },
 
   {

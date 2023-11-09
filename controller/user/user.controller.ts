@@ -142,13 +142,13 @@ const userLogin = {
           message: "User doesn't exist",
         });
       }
-
       const match = bcrypt.compare(user.password, password);
       if (!match) {
         return res.status(400).send({
           message: "Enter a valid password",
         });
       }
+
       const token = newToken(user.id);
       return res.status(200).send(token);
     } catch (e) {

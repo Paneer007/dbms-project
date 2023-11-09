@@ -6,6 +6,7 @@ interface AnswerAttributes {
   accepted: boolean;
   voteCount: number;
   create: Date;
+  questionId: number;
 }
 
 type AnswerCreationAttributes = Optional<AnswerAttributes, "id">;
