@@ -34,6 +34,7 @@ const getAnswers = {
         //@ts-ignore
         let data = {
           answer: details,
+          //@ts-ignore
           user: userDetails["username"],
           answerDetails: i,
         };
