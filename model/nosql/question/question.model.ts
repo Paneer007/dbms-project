@@ -5,6 +5,9 @@ const QuestionSchema = new Schema<QuestionInterface>({
   questions: {
     type: String,
   },
+  topic: {
+    type: String,
+  },
 });
 
 const QuestionModel = model<QuestionInterface>("Questions", QuestionSchema);

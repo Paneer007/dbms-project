@@ -5,6 +5,7 @@ interface questionInterface {
 }
 interface QuestionInterface extends Document {
   questions: string;
+  topic: string;
 }
 
 export default QuestionInterface;

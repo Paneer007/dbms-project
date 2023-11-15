@@ -5,7 +5,7 @@ import Question from "../question/question.model";
 @Table
 class Answer extends Model {
   @Column
-  answerText!: number;
+  answerText!: string;
 
   @Column
   accepted!: boolean;

@@ -77,7 +77,15 @@ const unBanProfile = {
 const closeQuestion = {
   handler: async (req: any, res: any) => {
     try {
-      if (!req.isAdmin) {
+      const userId = req.currentUserId;
+      const users = await userModel.findOne({
+        where: {
+          id: userId,
+        },
+      });
+      console.log(users);
+      //@ts-ignore
+      if (!users.isAdmin) {
         return res.code(400).send({ message: "You are not an admin" });
       }
       const body = req.body;

@@ -110,6 +110,7 @@ const userSignup = {
       await userModel.create({
         username: username,
         password: hashedPassword,
+        isAdmin: false,
       });
       return res.status(200).send("User created");
     } catch (e) {

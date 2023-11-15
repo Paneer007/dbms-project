@@ -3,7 +3,7 @@ import answerModel from "../../model/sql/answer/answer.model";
 import QuestionModel from "../../model/nosql/question/question.model";
 import AnswerModel from "../../model/nosql/answer/answer.model";
 import { error } from "console";
-
+import User from "../../model/sql/user/user.model";
 const getDetails = async (x: any) => {
   const questionDetail = await QuestionModel.findById(x);
   return questionDetail;
@@ -23,7 +23,14 @@ const getAnswers = {
       for (let i of answers) {
         console.log(i.answerText);
         let details = await AnswerModel.findOne({ _id: i.answerText });
-        result.push(details);
+        const userDetails = await User.findOne({
+          where: {
+            id: i.userId,
+          },
+        });
+        //@ts-ignore
+        let data = { answer: details, user: userDetails["username"] };
+        result.push(data);
       }
       return res.code(200).send({
         questions: result,
@@ -67,12 +74,26 @@ const getQuestions = {
       console.log(questionDetail);
       //@ts-ignore
       const mapElem = {};
+      let mapElem2 = {};
+      let mapElem3 = {};
       for (let i = 0; i < question.length; i++) {
         const questionDetail = await QuestionModel.findById(
           question[i].details
         );
         //@ts-ignore
         mapElem[i] = questionDetail["questions"];
+        //@ts-ignore
+        mapElem3[i] = questionDetail["topic"];
+      }
+      for (let i = 0; i < question.length; i++) {
+        const userDetails = await User.findOne({
+          where: {
+            id: question[i].userId,
+          },
+        });
+        //@ts-ignore
+        //@ts-ignore
+        mapElem2[i] = userDetails["username"];
       }
       console.log("done");
       const questions = question.map((x, idx) => {
@@ -83,9 +104,12 @@ const getQuestions = {
           status: x.status,
           view_count: x.viewCount,
           vote_count: x.voteCount,
+          //@ts-ignore
+          user_id: mapElem2[idx],
+          //@ts-ignore
+          topic: mapElem3[idx],
         };
       });
-      console.log(questions);
       return res.code(200).send({
         questions: questions,
       });
@@ -100,12 +124,14 @@ const postQuestion = {
     try {
       const body = req.body;
       const questionDetails = body.questionDetails;
+      const topic = body.topic;
       if (!questionDetails) {
         return res.status(401).send("Error in fetching parameters");
       }
 
       const nosqlQuestion = new QuestionModel({
         questions: questionDetails,
+        topic: topic,
       });
       nosqlQuestion.save();
 
@@ -120,6 +146,7 @@ const postQuestion = {
       // create Question object with the details needed
       return res.status(200).send("Question created");
     } catch (e) {
+      console.log(e);
       return res.status(500).send({
         message: "Error while posting question",
       });
@@ -267,6 +294,7 @@ const patchAnswer = {
 const getAllUserQuestions = {
   handler: async (req: any, res: any) => {
     try {
+      console.log("this is fired");
       const userId = req.currentUserId;
       const questions = await questionModel.findAll({
         where: {
@@ -277,17 +305,28 @@ const getAllUserQuestions = {
       if (!questions || questions.length == 0) {
         return res.status(500).send("No questions exists");
       }
+      let mapElem = {};
+      for (let i = 0; i < questions.length; i++) {
+        const questionDetail = await QuestionModel.findById(
+          questions[i].details
+        );
+        //@ts-ignore
+        mapElem[i] = questionDetail["questions"];
+      }
       return res.code(200).send({
-        questions: questions.map((x) => {
+        questions: questions.map((x, idx) => {
           return {
-            details: getDetails(x.details),
+            id: x.id,
+            //@ts-ignore
+            details: mapElem[idx],
             status: x.status,
             view_count: x.viewCount,
             vote_count: x.voteCount,
           };
         }),
       });
-    } catch {
+    } catch (err) {
+      console.log(err);
       return res.status(500).send("Internal server error");
     }
   },

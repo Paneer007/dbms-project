@@ -12,6 +12,9 @@ class User extends Model {
   @Column
   name!: string;
 
+  @Column
+  isAdmin!: boolean;
+
   @HasMany(() => Question)
   questions!: Question[];
 }

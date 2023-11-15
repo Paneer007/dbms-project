@@ -11,7 +11,7 @@ import Answer from "../answer/answer.model";
 @Table
 class Question extends Model {
   @Column
-  details!: number;
+  details!: string;
 
   @Column
   status!: string;
