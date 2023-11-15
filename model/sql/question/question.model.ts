@@ -7,6 +7,7 @@ import {
 } from "sequelize-typescript";
 import User from "../user/user.model";
 import Answer from "../answer/answer.model";
+import Vote from "../vote/vote.model";
 
 @Table
 class Question extends Model {
@@ -28,6 +29,9 @@ class Question extends Model {
 
   @HasMany(() => Answer)
   answers!: Answer[];
+
+  @HasMany(() => Vote)
+  votes!: Vote[];
 }
 
 export default Question;

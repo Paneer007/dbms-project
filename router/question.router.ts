@@ -12,6 +12,9 @@ import {
   postVoteQuestion,
   getQuestionDetails,
   getAnswers,
+  postDownvoteQuestion,
+  deleteAnswer,
+  deleteQuestion,
 } from "../controller/question/question.controller";
 
 const routes: RouteOptions[] = [
@@ -67,6 +70,12 @@ const routes: RouteOptions[] = [
     preHandler: [signToken],
     handler: postVoteQuestion.handler,
   },
+  {
+    method: "POST",
+    url: "/downvote",
+    preHandler: [signToken],
+    handler: postDownvoteQuestion.handler,
+  },
 
   {
     method: "PATCH",
@@ -80,6 +89,18 @@ const routes: RouteOptions[] = [
     url: "/answer",
     preHandler: [signToken],
     handler: patchAnswer.handler,
+  },
+  {
+    method: "POST",
+    url: "/answer/delete",
+    preHandler: [signToken],
+    handler: deleteAnswer.handler,
+  },
+  {
+    method: "POST",
+    url: "/question/delete",
+    preHandler: [signToken],
+    handler: deleteQuestion.handler,
   },
 ];
 

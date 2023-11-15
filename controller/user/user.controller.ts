@@ -2,6 +2,39 @@ import userModel from "../../model/sql/user/user.model";
 import bcrypt from "bcrypt";
 import { newToken } from "../../utils/createToken";
 
+function checkpassword(password: string) {
+  var strength = 0;
+  if (password.match(/[a-z]+/)) {
+    strength += 1;
+  }
+  if (password.match(/[A-Z]+/)) {
+    strength += 1;
+  }
+  if (password.match(/[0-9]+/)) {
+    strength += 1;
+  }
+  if (password.match(/[$@#&!]+/)) {
+    strength += 1;
+  }
+
+  switch (strength) {
+    case 0:
+      return 0;
+    case 1:
+      return 25;
+
+    case 2:
+      return 50;
+
+    case 3:
+      return 75;
+
+    case 4:
+      return 100;
+  }
+  return 0;
+}
+
 const getUsers = {
   handler: async (req: any, res: any) => {
     try {
@@ -93,6 +126,10 @@ const userSignup = {
       const password = body.password;
       if (!username || !password) {
         return res.status(400).send({ message: "Enter valid credentials" });
+      }
+
+      if (password.length < 8 || checkpassword(password) < 50) {
+        return res.status(400).send({ message: "Weak password" });
       }
 
       const user = await userModel.findOne({
