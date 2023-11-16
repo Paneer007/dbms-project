@@ -5,7 +5,7 @@ import Comment from "../model/sql/comment/comment.model";
 import Answer from "../model/sql/answer/answer.model";
 import Question from "../model/sql/question/question.model";
 import Vote from "../model/sql/vote/vote.model";
-
+import VoteAns from "../model/sql/voteAns/voteAns.model";
 const db = new Sequelize(
   config.mysqldatabase,
   config.mysqlusername,
@@ -17,7 +17,7 @@ const db = new Sequelize(
 );
 
 // add models here
-db.addModels([Comment, Answer, Question, User, Vote]);
+db.addModels([Comment, Answer, Question, User, Vote, VoteAns]);
 
 const connectSQLDatabase = () => {
   db.sync({ force: false })

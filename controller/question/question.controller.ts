@@ -1,6 +1,7 @@
 import questionModel from "../../model/sql/question/question.model";
 import answerModel from "../../model/sql/answer/answer.model";
 import voteModel from "../../model/sql/vote/vote.model";
+import VoteAns from "../../model/sql/voteAns/voteAns.model";
 import userModel from "../../model/sql/user/user.model";
 import QuestionModel from "../../model/nosql/question/question.model";
 import AnswerModel from "../../model/nosql/answer/answer.model";
@@ -468,7 +469,8 @@ const patchAnswer = {
           userId: user_id,
         },
       });
-
+      console.log(answer_id, user_id);
+      console.log("adfdsf");
       if (!answer) {
         return res.status(400).send({
           message: "answer doesn't exist",
@@ -493,6 +495,162 @@ const patchAnswer = {
       await answerDetail.save();
 
       // code the rest of the route lamo
+      return res.status(200).send("Answer updated");
+    } catch (err) {
+      console.log(err);
+      return res.status(500).send({
+        message: "Error while obtain the answers for a question",
+      });
+    }
+  },
+};
+
+const upVoteAnswer = {
+  handler: async (req: any, res: any) => {
+    try {
+      const body = req.body;
+      const answer_id = body.answerId;
+      const user_id = req.currentUserId;
+
+      if (!answer_id) {
+        return res.status(200).send("enter valid body");
+      }
+
+      const answer = await answerModel.findOne({
+        where: {
+          id: answer_id,
+        },
+      });
+
+      if (!answer) {
+        return res.status(400).send({
+          message: "answer doesn't exist",
+        });
+      }
+
+      // if (answer.userId != user_id) {
+      //   return res.status(400).send({
+      //     message: "wrong user ",
+      //   });
+      // }
+      const vote = await VoteAns.findOne({
+        where: {
+          userId: req.currentUserId,
+          answerId: answer_id,
+        },
+      });
+      if (!vote) {
+        const vote = await VoteAns.create({
+          userId: req.currentUserId,
+          answerId: answer_id,
+          upvote: true,
+          downvote: false,
+        });
+        answer.set({
+          voteCount: answer.voteCount + 1,
+        });
+        const update = await vote.save();
+        const updated = await answer.save();
+        if (updated) {
+          return res.status(200).send("Answer updated");
+        } else {
+          return res.status(500).send({
+            message: "Error while obtain the answers for a question",
+          });
+        }
+      }
+
+      if (vote.upvote) {
+        return res.status(200).send("Already voted");
+      }
+      answer.set({
+        voteCount: answer.voteCount + 1,
+      });
+      vote.set({ upvote: true, downvote: false });
+      const update = vote.save();
+      const updated = await answer.save();
+      if (!updated || !update) {
+        return res.code(500).send({ message: "Error while updating vote" });
+      }
+
+      return res.status(200).send("Answer updated");
+    } catch (err) {
+      console.log(err);
+      return res.status(500).send({
+        message: "Error while obtain the answers for a question",
+      });
+    }
+  },
+};
+
+const DownVoteAnswer = {
+  handler: async (req: any, res: any) => {
+    try {
+      const body = req.body;
+      const answer_id = body.answerId;
+      const user_id = req.currentUserId;
+
+      if (!answer_id) {
+        return res.status(200).send("enter valid body");
+      }
+
+      const answer = await answerModel.findOne({
+        where: {
+          id: answer_id,
+        },
+      });
+
+      if (!answer) {
+        return res.status(400).send({
+          message: "answer doesn't exist",
+        });
+      }
+
+      // if (answer.userId != user_id) {
+      //   return res.status(400).send({
+      //     message: "wrong user ",
+      //   });
+      // }
+      const vote = await VoteAns.findOne({
+        where: {
+          userId: req.currentUserId,
+          answerId: answer_id,
+        },
+      });
+      if (!vote) {
+        const vote = await VoteAns.create({
+          userId: req.currentUserId,
+          answerId: answer_id,
+          upvote: false,
+          downvote: true,
+        });
+        answer.set({
+          voteCount: answer.voteCount - 1,
+        });
+        const update = await vote.save();
+        const updated = await answer.save();
+        if (updated) {
+          return res.status(200).send("Answer updated");
+        } else {
+          return res.status(500).send({
+            message: "Error while obtain the answers for a question",
+          });
+        }
+      }
+
+      if (vote.downvote) {
+        return res.status(200).send("Already voted");
+      }
+      answer.set({
+        voteCount: answer.voteCount - 1,
+      });
+      vote.set({ upvote: false, downvote: true });
+      const update = vote.save();
+      const updated = await answer.save();
+      if (!updated || !update) {
+        return res.code(500).send({ message: "Error while updating vote" });
+      }
+
       return res.status(200).send("Answer updated");
     } catch (err) {
       console.log(err);
@@ -576,4 +734,6 @@ export {
   getAnswers,
   deleteAnswer,
   deleteQuestion,
+  upVoteAnswer,
+  DownVoteAnswer,
 };

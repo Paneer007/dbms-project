@@ -15,6 +15,8 @@ import {
   postDownvoteQuestion,
   deleteAnswer,
   deleteQuestion,
+  DownVoteAnswer,
+  upVoteAnswer,
 } from "../controller/question/question.controller";
 
 const routes: RouteOptions[] = [
@@ -75,6 +77,18 @@ const routes: RouteOptions[] = [
     url: "/downvote",
     preHandler: [signToken],
     handler: postDownvoteQuestion.handler,
+  },
+  {
+    method: "POST",
+    url: "/voteAns",
+    preHandler: [signToken],
+    handler: upVoteAnswer.handler,
+  },
+  {
+    method: "POST",
+    url: "/downvoteAns",
+    preHandler: [signToken],
+    handler: DownVoteAnswer.handler,
   },
 
   {
