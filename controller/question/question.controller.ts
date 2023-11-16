@@ -469,8 +469,6 @@ const patchAnswer = {
           userId: user_id,
         },
       });
-      console.log(answer_id, user_id);
-      console.log("adfdsf");
       if (!answer) {
         return res.status(400).send({
           message: "answer doesn't exist",
@@ -676,12 +674,15 @@ const getAllUserQuestions = {
         return res.status(500).send("No questions exists");
       }
       let mapElem = {};
+      let mapElem2 = {};
       for (let i = 0; i < questions.length; i++) {
         const questionDetail = await QuestionModel.findById(
           questions[i].details
         );
         //@ts-ignore
         mapElem[i] = questionDetail["questions"];
+        //@ts-ignore
+        mapElem2[i] = questionDetail["topic"];
       }
       return res.code(200).send({
         questions: questions.map((x, idx) => {
@@ -692,6 +693,8 @@ const getAllUserQuestions = {
             status: x.status,
             view_count: x.viewCount,
             vote_count: x.voteCount,
+            //@ts-ignore
+            topic: mapElem2[idx],
           };
         }),
       });
